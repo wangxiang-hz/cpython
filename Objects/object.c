@@ -2355,8 +2355,8 @@ _PyTypes_FiniTypes(PyInterpreterState *interp)
 static inline void
 new_reference(PyObject *op)
 {
-    if (_PyRuntime.tracemalloc.config.tracing) {
-        _PyTraceMalloc_NewReference(op);
+    if (_PyRuntime.reference_tracers.new_reference) {
+        _PyRuntime.reference_tracers.new_reference(op);
     }
     // Skip the immortal object check in Py_SET_REFCNT; always set refcnt to 1
 #if !defined(Py_GIL_DISABLED)
@@ -2390,7 +2390,6 @@ _Py_NewReferenceNoTotal(PyObject *op)
 }
 
 
-#ifdef Py_TRACE_REFS
 void
 _Py_ForgetReference(PyObject *op)
 {
@@ -2398,6 +2397,11 @@ _Py_ForgetReference(PyObject *op)
         _PyObject_ASSERT_FAILED_MSG(op, "negative refcnt");
     }
 
+    if (_PyRuntime.reference_tracers.forget_reference) {
+        _PyRuntime.reference_tracers.forget_reference(op);
+    }
+
+#ifdef Py_TRACE_REFS
     PyInterpreterState *interp = _PyInterpreterState_GET();
 
 #ifdef SLOW_UNREF_CHECK
@@ -2409,8 +2413,11 @@ _Py_ForgetReference(PyObject *op)
 #endif
 
     _PyRefchain_Remove(interp, op);
+#endif  /* Py_TRACE_REFS */
 }
 
+
+#ifdef Py_TRACE_REFS
 static int
 _Py_PrintReference(_Py_hashtable_t *ht,
                    const void *key, const void *value,
@@ -2851,9 +2858,8 @@ _Py_Dealloc(PyObject *op)
     Py_INCREF(type);
 #endif
 
-#ifdef Py_TRACE_REFS
     _Py_ForgetReference(op);
-#endif
+
     (*dealloc)(op);
 
 #ifdef Py_DEBUG

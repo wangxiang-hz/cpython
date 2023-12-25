@@ -106,6 +106,18 @@ struct _tracemalloc_runtime_state {
     Py_tss_t reentrant_key;
 };
 
+
+struct _reference_tracers {
+    /* List of tracers called when a PyObject is initialized, or is about to be deleted.
+       Protected by the GIL. */ 
+
+    /* The reference count of a PyObject changes from 0 to 1 */
+    int (*new_reference) (PyObject *op);
+
+    /* The reference count of a PyObject changes to 0 */
+    int (*forget_reference) (PyObject *op);
+};
+
 #define _tracemalloc_runtime_state_INIT \
     { \
         .config = { \
@@ -116,6 +128,11 @@ struct _tracemalloc_runtime_state {
         .reentrant_key = Py_tss_NEEDS_INIT, \
     }
 
+#define _reference_tracers_INIT \
+    { \
+        .new_reference = NULL, \
+        .forget_reference = NULL, \
+    }
 
 // Get the traceback where a memory block was allocated.
 //

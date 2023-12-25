@@ -32,7 +32,6 @@ extern void _PyDebugAllocatorStats(FILE *out, const char *block_name,
 
 extern void _PyObject_DebugTypeStats(FILE *out);
 
-#ifdef Py_TRACE_REFS
 // Forget a reference registered by _Py_NewReference(). Function called by
 // _Py_Dealloc().
 //
@@ -41,7 +40,6 @@ extern void _PyObject_DebugTypeStats(FILE *out);
 // _Py_NewReferenceNoTotal() should be called again on the object to trace
 // it again.
 extern void _Py_ForgetReference(PyObject *);
-#endif
 
 // Export for shared _testinternalcapi extension
 PyAPI_FUNC(int) _PyObject_IsFreed(PyObject *);
@@ -184,9 +182,8 @@ _Py_DECREF_SPECIALIZED(PyObject *op, const destructor destruct)
         assert(op->ob_refcnt > 0);
     }
     else {
-#ifdef Py_TRACE_REFS
+
         _Py_ForgetReference(op);
-#endif
         destruct(op);
     }
 }

@@ -911,6 +911,13 @@ _PyTraceMalloc_Start(int max_nframe)
         return 0;
     }
 
+    /* If we forcefully set this function, other hooks in execution may encounter errors. */
+    if (_PyRuntime.reference_tracers.new_reference) {
+        PyErr_Format(PyExc_ValueError,
+                     "new reference tracer already installed");	
+        return -1;
+    }
+
     tracemalloc_config.max_nframe = max_nframe;
 
     /* allocate a buffer to store a new traceback */
@@ -946,6 +953,8 @@ _PyTraceMalloc_Start(int max_nframe)
     PyMem_GetAllocator(PYMEM_DOMAIN_OBJ, &allocators.obj);
     PyMem_SetAllocator(PYMEM_DOMAIN_OBJ, &alloc);
 
+    _PyRuntime.reference_tracers.new_reference = _PyTraceMalloc_NewReference;
+
     /* everything is ready: start tracing Python memory allocations */
     tracemalloc_config.tracing = 1;
 
@@ -970,6 +979,8 @@ _PyTraceMalloc_Stop(void)
     PyMem_SetAllocator(PYMEM_DOMAIN_OBJ, &allocators.obj);
 
     tracemalloc_clear_traces();
+
+    _PyRuntime.reference_tracers.new_reference = NULL;
 
     /* release memory */
     raw_free(tracemalloc_traceback);
@@ -1334,6 +1345,38 @@ PyTraceMalloc_Untrack(unsigned int domain, uintptr_t ptr)
     tracemalloc_remove_trace(domain, ptr);
     TABLES_UNLOCK();
 
+    return 0;
+}
+
+
+int
+PyTrace_NewReference(int (*new_reference)(PyObject *))
+{
+    assert(PyGILState_Check());
+
+    if (new_reference != NULL && _PyRuntime.reference_tracers.new_reference) {
+        PyErr_Format(PyExc_ValueError,
+                     "new reference tracer already installed");	
+        return -1;
+    }
+
+    _PyRuntime.reference_tracers.new_reference = new_reference;
+    return 0;
+}
+
+
+int
+PyTrace_ForgetReference(int (*forget_reference)(PyObject *))
+{
+    assert(PyGILState_Check());
+
+    if (forget_reference != NULL && _PyRuntime.reference_tracers.forget_reference) {
+        PyErr_Format(PyExc_ValueError,
+                     "forget reference tracer already installed");
+        return -1;
+    }
+
+    _PyRuntime.reference_tracers.forget_reference = forget_reference;
     return 0;
 }
 

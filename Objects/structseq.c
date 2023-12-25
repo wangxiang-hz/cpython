@@ -664,7 +664,9 @@ PyStructSequence_InitType2(PyTypeObject *type, PyStructSequence_Desc *desc)
        before overwriting its storage */
     PyInterpreterState *interp = _PyInterpreterState_GET();
     if (_PyRefchain_IsTraced(interp, (PyObject *)type)) {
+#endif
         _Py_ForgetReference((PyObject *)type);
+#ifdef Py_TRACE_REFS
     }
 #endif
 

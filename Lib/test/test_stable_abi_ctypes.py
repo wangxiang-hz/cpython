@@ -679,6 +679,8 @@ SYMBOL_NAMES = (
     "PyTraceBack_Here",
     "PyTraceBack_Print",
     "PyTraceBack_Type",
+    "PyTrace_ForgetReference",
+    "PyTrace_NewReference",
     "PyTupleIter_Type",
     "PyTuple_GetItem",
     "PyTuple_GetSlice",

@@ -2481,3 +2481,7 @@
 [function._Py_SetRefcnt]
     added = '3.13'
     abi_only = true
+[function.PyTrace_NewReference]
+    added = '3.13'
+[function.PyTrace_ForgetReference]
+    added = '3.13'

@@ -226,6 +226,7 @@ typedef struct pyruntimestate {
     struct _fileutils_state fileutils;
     struct _faulthandler_runtime_state faulthandler;
     struct _tracemalloc_runtime_state tracemalloc;
+    struct _reference_tracers reference_tracers;
 
     PyPreConfig preconfig;
 
